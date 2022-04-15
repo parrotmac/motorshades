@@ -28,9 +28,9 @@ type adjustmentMessage struct {
 func (s *server) sendAdjustment(ctx context.Context, target string, direction string, duration int32, dutyCycle int32) error {
 	var pin int32
 	switch direction {
-	case "forward":
+	case "forward", "up", "plus", "a":
 		pin = 1
-	case "backward":
+	case "backward", "down", "minus", "b":
 		pin = 2
 	default:
 		return fmt.Errorf("invalid direction: %s", direction)
