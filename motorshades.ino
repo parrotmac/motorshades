@@ -39,11 +39,11 @@ EspMQTTClient client(
 void setup() {
   Serial.begin(115200);
 
-  sprintf(lifecycleTopic, "%s/lifecycle", DEVICE_NAME);
-  sprintf(positionJsonTopic, "%s/position/json", DEVICE_NAME);
-  sprintf(positionReplyJsonTopic, "%s/position-reply/json", DEVICE_NAME);
-  sprintf(positionProtoTopic, "%s/position/proto", DEVICE_NAME);
-  sprintf(positionReplyProtoTopic, "%s/position-reply/proto", DEVICE_NAME);
+  sprintf(lifecycleTopic, "motorshades/%s/lifecycle", DEVICE_NAME);
+  sprintf(positionJsonTopic, "motorshades/%s/position/json", DEVICE_NAME);
+  sprintf(positionReplyJsonTopic, "motorshades/%s/position-reply/json", DEVICE_NAME);
+  sprintf(positionProtoTopic, "motorshades/%s/position/proto", DEVICE_NAME);
+  sprintf(positionReplyProtoTopic, "motorshades/%s/position-reply/proto", DEVICE_NAME);
 
   pinMode(motorPinA1, OUTPUT);
   pinMode(motorPinA2, OUTPUT);

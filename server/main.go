@@ -55,7 +55,7 @@ func (s *server) sendAdjustment(ctx context.Context, target string, direction st
 		return err
 	}
 
-	return s.mqtt.Publish(ctx, fmt.Sprintf("%s/position/json", target), 1, false, msgBody)
+	return s.mqtt.Publish(ctx, fmt.Sprintf("motorshades/%s/position/json", target), 1, false, msgBody)
 }
 
 func (s *server) adjustHandler(w http.ResponseWriter, r *http.Request) {
