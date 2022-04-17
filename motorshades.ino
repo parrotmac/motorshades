@@ -2,6 +2,23 @@
 #include "ArduinoJson.h"
 #include "Secrets.h"
 
+#include "Shades.pb.h"
+
+#include "pb_common.h"
+#include "pb.h"
+#include "pb_encode.h"
+#include "pb_decode.h"
+
+uint8_t buffer[128];
+size_t message_length;
+bool status;
+
+char lifecycleTopic[100] = "";
+char positionJsonTopic[100] = "";
+char positionReplyJsonTopic[100] = "";
+char positionProtoTopic[100] = "";
+char positionReplyProtoTopic[100] = "";
+
 const size_t CAPACITY = JSON_OBJECT_SIZE(3);
 
 const size_t JSON_BUFFER_MAX = 64;
@@ -22,6 +39,12 @@ EspMQTTClient client(
 void setup() {
   Serial.begin(115200);
 
+  sprintf(lifecycleTopic, "%s/lifecycle", DEVICE_NAME);
+  sprintf(positionJsonTopic, "%s/position/json", DEVICE_NAME);
+  sprintf(positionReplyJsonTopic, "%s/position-reply/json", DEVICE_NAME);
+  sprintf(positionProtoTopic, "%s/position/proto", DEVICE_NAME);
+  sprintf(positionReplyProtoTopic, "%s/position-reply/proto", DEVICE_NAME);
+
   pinMode(motorPinA1, OUTPUT);
   pinMode(motorPinA2, OUTPUT);
 
@@ -32,11 +55,34 @@ void setup() {
   client.enableDebuggingMessages(); // Enable debugging messages sent to serial output
   client.enableHTTPWebUpdater("admin", ADMIN_PASSWORD);
   client.enableOTA(ADMIN_PASSWORD, 8888);
-  client.enableLastWillMessage("motorshades/lifecycle", "{\"state\":\"disconnected\"}");
+  client.enableLastWillMessage(lifecycleTopic, "{\"state\":\"disconnected\"}");
 }
 
 void onConnectionEstablished() {
-  client.subscribe("motorshades/position/json", [](const String & payload) {
+  client.subscribe(positionProtoTopic, [](const String & payload) {
+    payload.toCharArray(jsonBuffer, JSON_BUFFER_MAX);
+
+    example_Adjustment adjustment = example_Adjustment_init_zero;
+    pb_istream_t stream = pb_istream_from_buffer((const pb_byte_t*)(payload.c_str()), payload.length());
+    status = pb_decode(&stream, example_Adjustment_fields, &adjustment);
+
+    if (!status) {
+      Serial.println("Error decoding message");
+      return;
+    }
+
+    Serial.println("Received adjustment message:");
+    Serial.print("> pin: ");
+    Serial.println(adjustment.pin);
+    Serial.print("> duration_ms: ");
+    Serial.println(adjustment.duration_ms);
+    Serial.print("> duty_cycle: ");
+    Serial.println(adjustment.duty_cycle);
+
+    // client.publish(positionReplyProtoTopic, replyBuffer);
+  });
+
+  client.subscribe(positionJsonTopic, [](const String & payload) {
     payload.toCharArray(jsonBuffer, JSON_BUFFER_MAX);
 
     StaticJsonDocument<CAPACITY> doc;
@@ -73,7 +119,7 @@ void onConnectionEstablished() {
       sprintf(replyBuffer, "Invalid Pin(%d)", pinNumber);
     }
 
-    client.publish("motorshades/position/reply", replyBuffer);
+    client.publish(positionReplyJsonTopic, replyBuffer);
 
     // TODO: Handle delay without blocking the MQTT client
     delay(duration);
@@ -82,7 +128,7 @@ void onConnectionEstablished() {
     digitalWrite(motorPinA2, LOW);
   });
 
-  client.publish("motorshades/lifecycle", "{\"state\":\"connected\"}");
+  client.publish(lifecycleTopic, "{\"state\":\"connected\"}");
 }
 
 void loop() {
