@@ -20,6 +20,6 @@ deps:
 
 .PHONY: install_arduino_cli
 install_arduino_cli:
-	# Note! As of 2022-04-02, this doesn't work form arm64 macOS or Linux
+	# Note! As of 2022-04-02, this doesn't work from arm64 macOS or Linux
 	curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
 
