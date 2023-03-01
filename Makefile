@@ -9,6 +9,13 @@ compile:
 upload:
 	arduino-cli upload . --protocol serial -b esp8266:esp8266:nodemcuv2 --port /dev/cu.usbserial-2110
 
+.PHONY: build-ota
+build-ota:
+	arduino-cli compile -b esp8266:esp8266:nodemcuv2 --output-dir build .
+
+.PHONY: send-ota
+send-ota:
+	curl -v -u "admin:$(ADMIN_PASSWORD)" -F "firmware=@build/motorshades.ino.bin" http://$(DEVICE_IP)
 
 .PHONY: deps
 deps:
@@ -22,4 +29,3 @@ deps:
 install_arduino_cli:
 	# Note! As of 2022-04-02, this doesn't work from arm64 macOS or Linux
 	curl -fsSL https://raw.githubusercontent.com/arduino/arduino-cli/master/install.sh | sh
-
